@@ -6,3 +6,9 @@ class ProductSerializer(ModelSerializer):
     class Meta:
         model =  models.Product
         fields = ('name', 'price')
+
+
+class ManufacturerSerializer(ModelSerializer):
+    class Meta:
+        model = models.Manufacturer
+        fields = ('name', 'country')
