@@ -21,3 +21,12 @@ class ManufacturerViewSet(BaseViewSet):
     serializer_class = serializers.ManufacturerSerializer
     queryset = models.Manufacturer.objects.all()
 
+
+class CategoryViewSet(BaseViewSet):
+    serializer_class = serializers.CategorySerializer
+    queryset = models.ProductCategory.objects.all()
+
+
+class DiscountViewSet(BaseViewSet):
+    serializer_class = serializers.DiscountSerializer
+    queryset = models.Discount.objects.all()

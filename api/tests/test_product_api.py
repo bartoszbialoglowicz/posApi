@@ -14,6 +14,12 @@ def create_product(**params):
 def create_manufacturer(**params):
     return models.Manufacturer.objects.create(**params)
 
+def create_category(name):
+    return models.ProductCategory.objects.create(name=name)
+
+def get_detail_url(id):
+    return reverse('api:product-detail', kwargs={'pk': id})
+
 class PublicApiTests(TestCase):
     """Tests for unauthorized API calls"""
 
@@ -40,19 +46,22 @@ class PrivateApiTests(TestCase):
         )
         
         self.client.force_authenticate(self.user)
-        self.manufacturer = create_manufacturer(name="Test", country="Test")
+        self.category = create_category("TestCategory")
+        self.manufacturer = create_manufacturer(name="Test2", country="Test")
 
     def test_get_product_list(self):
         """Tests retrieving a list of products"""
         p1 = create_product(
             name="test",
             price=10,
-            manufacturer=self.manufacturer
+            manufacturer=self.manufacturer,
+            category=self.category
         )
         p2 = create_product(
             name="test2",
             price=2,
-            manufacturer=self.manufacturer
+            manufacturer=self.manufacturer,
+            category=self.category
         )
 
         response = self.client.get(PRODUCT_URL)
@@ -66,7 +75,8 @@ class PrivateApiTests(TestCase):
         payload = {
             "name": "Test",
             "price": 1,
-            "manufacturer": self.manufacturer
+            "manufacturer_id": self.manufacturer.id,
+            "category": self.category
         }
 
         response = self.client.post(
@@ -74,4 +84,31 @@ class PrivateApiTests(TestCase):
             payload
         )
 
+        product = models.Product.objects.get(name=payload["name"])
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.manufacturer.name, product.manufacturer.name)
+
+    def test_partial_update_product(self):
+        """Test partial update a product instance"""
+        payload = {
+            "name": "Test",
+            "price": 1,
+            "manufacturer": self.manufacturer,
+            "category": self.category
+        }
+        payload2 = {
+            "name": "Updated name"
+        }
+        product = create_product(**payload)
+        
+        url = get_detail_url(product.pk)
+        response = self.client.patch(
+            url,
+            payload2
+        )
+
+        product.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(payload2['name'], product.name)

@@ -23,4 +23,15 @@ class UsersManagersTests(TestCase):
         self.assertTrue(user.is_active)
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
+
+    def test_create_staff_user(self):
+        """Test creating staff user"""
+        User = get_user_model()
+        user = User.objects.create_staff_user(username="Test", password="Testpass", first_name="Test", last_name="Test")
+        self.assertEqual(user.username, "Test")
+        self.assertEqual(user.first_name, "Test")
+        self.assertEqual(user.last_name, "Test")
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
             

@@ -7,6 +7,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('users:create_user')
 TOKEN_PAIR_URL = reverse('users:token_obtain_pair')
+USER_URL = reverse('users:me')
 
 
 def create_user(**payload):
@@ -131,4 +132,33 @@ class UserApiTests(TestCase):
 
         self.assertNotIn('access', response.data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-    
+
+    def test_user_manage_unauthorized(self):
+        """Test unauthorized access to user view fails"""
+        response = self.client.get(
+            USER_URL
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PublicUserApiTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            username="test",
+            password="TestPassword!",
+            first_name="TestFirstName",
+            last_name="TestLastName"
+        )
+        self.client.force_authenticate(self.user)
+
+    def test_manage_user(self):
+        """Test retrieving authenticated user"""
+        response = self.client.get(
+            USER_URL
+        )
+        self.assertEqual(response.data['username'], self.user.username)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
